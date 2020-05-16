@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
 
+import logging
+import sys
 import subprocess
 import time
 
 from gpiozero import OutputDevice
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+handler = logging.StreamHandler(sys.stdout)
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 ON_THRESHOLD = 65  # (degrees Celsius) Fan kicks on at this temperature.
@@ -40,16 +51,19 @@ if __name__ == '__main__':
 
     while True:
         temp = get_temp()
+        logger.debug("Temperature: {}".format(temp))
 
         # Start the fan if the temperature has reached the limit and the fan
         # isn't already running.
         # NOTE: `fan.value` returns 1 for "on" and 0 for "off"
         if temp > ON_THRESHOLD and not fan.value:
+            logger.info("Temperature above threshold, setting fan on: {} > {}".format(temp, ON_THRESHOLD))
             fan.on()
 
         # Stop the fan if the fan is running and the temperature has dropped
-        # to 10 degrees below the limit.
+        # below the limit.
         elif fan.value and temp < OFF_THRESHOLD:
+            logger.info("Temperature below threshold, setting fan off: {} > {}".format(temp, OFF_THRESHOLD))
             fan.off()
 
         time.sleep(SLEEP_INTERVAL)
