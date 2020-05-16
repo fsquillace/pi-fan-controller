@@ -5,14 +5,13 @@ set -e
 cd "$(dirname "$0")/.."
 
 echo "=> Installing fan controller...\n"
-sudo cp fancontrol.py /usr/local/bin/
-sudo chmod +x /usr/local/bin/fancontrol.py
+sudo cp fancontrol /usr/local/bin/
+sudo chmod +x /usr/local/bin/fancontrol
 
-echo "=> Starting fan controller...\n"
-sudo cp fancontrol.sh /etc/init.d/
-sudo chmod +x /etc/init.d/fancontrol.sh
+echo "=> Starting fan controller via Systemd...\n"
+sudo cp fancontrol.service /lib/systemd/system/fancontrol.service
 
-sudo update-rc.d fancontrol.sh defaults
-sudo /etc/init.d/fancontrol.sh start
+sudo systemctl enable fancontrol.service
+sudo systemctl start fancontrol.service
 
 echo "Fan controller installed."

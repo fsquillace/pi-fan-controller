@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 
 import logging
+
 import sys
 import subprocess
 import time
 
 from gpiozero import OutputDevice
+from signal import signal, SIGABRT, SIGILL, SIGINT, SIGSEGV, SIGTERM
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 handler = logging.StreamHandler(sys.stdout)
-handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -42,12 +43,11 @@ def get_temp():
         raise RuntimeError('Could not parse temperature output.')
 
 
-if __name__ == '__main__':
+def main_loop(fan):
+    logging.info("Starting Fan Controller...")
     # Validate the on and off thresholds
     if OFF_THRESHOLD >= ON_THRESHOLD:
         raise RuntimeError('OFF_THRESHOLD must be less than ON_THRESHOLD')
-
-    fan = OutputDevice(GPIO_PIN)
 
     while True:
         temp = get_temp()
@@ -67,3 +67,16 @@ if __name__ == '__main__':
             fan.off()
 
         time.sleep(SLEEP_INTERVAL)
+
+if __name__ == '__main__':
+    fan = OutputDevice(GPIO_PIN)
+
+    def exit_handler(*args):
+        logging.info("Exiting: Setting fan off.")
+        fan.off()
+        sys.exit(0)
+
+    for sig in (SIGABRT, SIGILL, SIGINT, SIGSEGV, SIGTERM):
+        signal(sig, exit_handler)
+
+    main_loop(fan)
