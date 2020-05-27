@@ -16,6 +16,6 @@ sudo cp fancontrol.service /lib/systemd/system/fancontrol.service
 
 sudo systemctl daemon-reload
 sudo systemctl enable fancontrol.service
-sudo systemctl start fancontrol.service
+sudo systemctl restart fancontrol.service
 
 echo "Fan controller installed."
